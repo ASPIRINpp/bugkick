@@ -12,7 +12,6 @@ return array(
     'basePath' => dirname(__FILE__) . DIRECTORY_SEPARATOR . '..',
     'name' => 'BugKick',
     'theme' => 'bugkick_theme',
-    'charset' => 'utf8',
     'controllerMap' => require($currDir . 'controller-map.php'),
     // preloading 'log' component
     'preload' => array('log'),
