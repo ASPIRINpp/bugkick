@@ -11,11 +11,11 @@ class Helper {
     public static function  truncateString($string, $limit = 20, $break= ' ', $pad = "&#133;")
     {
       // return with no change if string is shorter than $limit
-      if(strlen($string) <= $limit) return $string;
+      if(mb_strlen($string) <= $limit) return $string;
 
-      $string = substr($string, 0, $limit);
-      if(false !== ($breakpoint = strrpos($string, $break))) {
-        $string = substr($string, 0, $breakpoint);
+      $string = mb_substr($string, 0, $limit);
+      if(false !== ($breakpoint = mb_strrpos($string, $break))) {
+        $string = mb_substr($string, 0, $breakpoint);
       }
 
       return $string . $pad;
