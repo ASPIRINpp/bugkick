@@ -30,7 +30,7 @@ $beginCache=function($controller, $cacheId, $duration, $expression) {
     <div class="opacity05 checkbox unchecked" data-ticket-id="<?php echo $data->id; ?>"></div>
     <span class="title">
         <?php
-      		echo CHtml::link('<span class="ticket-number">#' . $data->number . '</span> ' . $data->title, array('bug/view', 'id'=>$data->number ), array('title'=>mb_substr($data->description, 0, 160)));
+      		echo CI18nHtml::link('<span class="ticket-number">#' . $data->number . '</span> ' . $data->title, array('bug/view', 'id'=>$data->number ), array('title'=>mb_substr($data->description, 0, 160, 'utf-8')));
             if ($data->is_created_with_api == 1){ ?>
                 <span class="bubble" style="background-color:#008000;"><?php echo Yii::t('main', 'USER SUBMITTED'); ?></span>
         <?php
