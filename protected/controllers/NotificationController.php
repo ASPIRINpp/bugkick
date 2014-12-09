@@ -1,26 +1,47 @@
 <?php
 
+/**
+ * NotificationController
+ * @since 1.2
+ */
 class NotificationController extends Controller {
 
+    /**
+     * @var string Layout views
+     */
     public $layout = '//layouts/column1';
 
-    const PAGE_SIZE = 30;
-
+    /**
+     * Render updates page by current project
+     */
     public function actionIndex() {
+        // Check current project
         $project = Project::getCurrent();
-        if (empty($project))
+        if (empty($project)) {
             $this->redirect($this->createUrl('/project/index'));
-
+        }
         //Edit Project stuff
-        $baseUrl = Yii::app()->assetManager->publish('protected/extensions/EAjaxUpload/assets');
-        Yii::app()->clientScript->registerScriptFile($baseUrl . '/fileuploader.js', CClientScript::POS_HEAD);
-        Yii::app()->clientScript->registerCssFile($baseUrl . '/fileuploader.css');
-        Yii::app()->clientScript->registerScriptFile(
-                Yii::app()->baseUrl . '/js/project/index/common.js'
-        );
-
-        MixPanel::instance()->registerEvent(MixPanel::UPDATES_PAGE_VIEW); // MixPanel events tracking
+        $this->registerClientScriptFiles(array(
+            array('src' => '/fileuploader.js', 'type' => 'script', 'pos' => CClientScript::POS_HEAD),
+            array('src' => '/fileuploader.css', 'type' => 'css'),
+            array('src' => '/js/project/index/common.js', 'type' => 'script', 'baseUrl' => Yii::app()->baseUrl)
+                ), Yii::app()->assetManager->publish('protected/extensions/EAjaxUpload/assets'));
+        // MixPanel events tracking
+        MixPanel::instance()->registerEvent(MixPanel::UPDATES_PAGE_VIEW);
         $this->render('index');
+    }
+
+    /**
+     * Render updates page by all project & users
+     */
+    public function actionAll() {
+        // Change layout
+        $this->layout = '//layouts/main';
+        // Notification url
+        Yii::app()->clientScript->registerScript('notificationUrl', 'window.notificationUrl = \'' . Yii::app()->createUrl('/notification/AllNotifications') . '\';', CClientScript::POS_HEAD);
+        // MixPanel events tracking
+        MixPanel::instance()->registerEvent(MixPanel::UPDATES_PAGE_VIEW);
+        $this->render('all');
     }
 
     /**
@@ -44,6 +65,8 @@ class NotificationController extends Controller {
                     'index',
                     'delete',
                     'notifications',
+                    'allnotifications',
+                    'all',
                 ),
                 'users' => array('@'),
             ),
@@ -85,58 +108,17 @@ class NotificationController extends Controller {
         return $model;
     }
 
+    /**
+     * Get notifications by current project & user
+     */
     public function actionNotifications() {
-        //$criteria = new CDbCriteria();
-        //$criteria->limit = 50;
-        //$criteria->select = 'n.*, u.name';
-        //$criteria->alias = 'n';
-        //$criteria->join = 'LEFT JOIN bk_user u ON n.user_id = u.user_id';
-        //$criteria->condition = 'user_id=:user_id';
-        //$criteria->order = 'notification_id desc';
-        //$criteria->params = array(
-        //       ':user_id'=>90,
-        //);
-        //$notification = Notification::model()->findAll($criteria);
-        //header('Content-type: application/json');
-        /*        $sql = '
-          SELECT DISTINCT n.*, u.user_id, u.name, u.lname, u.facebook_id, u.profile_img
-          FROM {{notification}} n
-          JOIN (
-          {{user}} u,
-          {{bug}} b,
-          {{user_by_project}} up
-          )
-          ON (
-          n.changer_id = u.user_id
-          AND n.bug_id IS NOT NULL
-          AND n.bug_id = b.id
-          AND b.project_id = up.project_id
-          AND up.project_id IN (
-          SELECT DISTINCT up.project_id FROM {{user_by_project}} up
-          WHERE 1
-          AND up.user_id = :current_user_id
-          )
-          )
-          WHERE n.user_id =:current_user_id
-          ORDER BY n.notification_id DESC LIMIT 50'; */
-        $sql = '
-            SELECT DISTINCT n.*, u.user_id, u.name, u.lname, u.facebook_id, u.profile_img
-                FROM {{notification}} n
-                    JOIN (
-                        {{user}} u,
-                        {{bug}} b,
-                        {{user_by_project}} up
-                    )
-                    ON (
-                        n.user_id = u.user_id
-                        AND n.bug_id IS NOT NULL
-                        AND n.bug_id = b.id
-                        AND b.project_id = :current_project_id
-                    )
-                WHERE n.user_id =:current_user_id
-                ORDER BY n.notification_id DESC LIMIT 50';
-        //$connection = Yii::app()->db;
-        //$connection->active = true;
+        $sql = 'SELECT DISTINCT n.*, u.user_id, u.name, u.lname, u.facebook_id, u.profile_img'
+                . ' FROM {{notification}} AS n'
+                . ' JOIN ({{user}} AS u, {{bug}} AS b, {{user_by_project}} AS up)'
+                . ' ON (n.user_id = u.user_id AND n.bug_id IS NOT NULL AND n.bug_id = b.id AND b.project_id = :current_project_id)'
+                . ' WHERE n.user_id = :current_user_id'
+                . ' ORDER BY n.notification_id DESC LIMIT 50';
+
         $command = Yii::app()->db->createCommand($sql);
         $command->params = array(
             ':current_user_id' => Yii::app()->user->id,
@@ -144,8 +126,21 @@ class NotificationController extends Controller {
         );
         $notifications = $command->queryAll();
         $this->respond($notifications);
-        /* echo CJSON::encode($notifications);
-          Yii::app()->end(); */
+    }
+
+    /**
+     * Get notifications by all project & users
+     */
+    public function actionAllNotifications() {
+        $sql = 'SELECT DISTINCT n.*, u.user_id, u.name, u.lname, u.facebook_id, u.profile_img, p.name AS project_name'
+                . ' FROM {{notification}} AS n'
+                . ' JOIN ({{user}} AS u, {{bug}} AS b, {{user_by_project}} AS up, {{project}} AS p)'
+                . ' ON (n.user_id = u.user_id AND n.bug_id IS NOT NULL AND n.bug_id = b.id AND p.project_id = b.project_id)'
+                . ' ORDER BY n.notification_id DESC LIMIT 50';
+
+        $command = Yii::app()->db->createCommand($sql);
+        $notifications = $command->queryAll();
+        $this->respond($notifications);
     }
 
 }

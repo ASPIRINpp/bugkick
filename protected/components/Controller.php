@@ -244,11 +244,22 @@ class Controller extends CController {
     /**
      * Simply register clientScript files
      * @param array $files Array of files e.g.: ['script.js' => 'script', 'styles.css' => 'css']
-     * @param boolean $addBaseUrl Add baseUrl before src
+     * @param string $baseUrl baseUrl before src
      */
-    public function registerClientScriptFiles($files, $addBaseUrl = FALSE) {
+    public function registerSimplyClientScriptFiles($files, $baseUrl = '') {
         foreach ($files as $src => $type) {
-            call_user_func(array($this->clientScript, 'register' . ucfirst($type) . 'File'), ($addBaseUrl ? Yii::app()->baseUrl : '') . $src);
+            call_user_func(array($this->clientScript, 'register' . ucfirst($type) . 'File'), "$baseUrl$src");
+        }
+    }
+
+    /**
+     * 
+     * @param type $files
+     * @param type $baseUrl
+     */
+    public function registerClientScriptFiles($files, $baseUrl = '') {
+        foreach ($files as $file) {
+            call_user_func(array($this->clientScript, 'register' . ucfirst($file['type']) . 'File'), (empty($file['baseUrl']) ? $baseUrl : $file['baseUrl'] ) . $file['src'], (empty($file['pos']) ? CClientScript::POS_HEAD : $file['pos']));
         }
     }
 

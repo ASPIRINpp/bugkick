@@ -79,13 +79,13 @@ class ProjectController extends Controller {
         $user = User::current();
 
         // Simple register ClientScript files
-        $this->registerClientScriptFiles(array(
+        $this->registerSimplyClientScriptFiles(array(
             '/js/plug-in/jquery-json/jquery.json.min.js' => 'css',
             '/js/plug-in/fprogress-bar/fprogress-bar.css' => 'css',
             '/js/plug-in/jquery-gantt/js/jquery.fn.gantt.min.js' => 'script',
             '/js/plug-in/jquery-gantt/style.css' => 'css',
             '/js/plug-in/jquery-form/jquery.form.min.js' => 'script',
-            '/js/project/index/common.min.js' => 'script'), TRUE);
+            '/js/project/index/common.min.js' => 'script'), Yii::app()->baseUrl);
 
         // Project
         $project = new Project('search');
