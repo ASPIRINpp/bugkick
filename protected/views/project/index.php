@@ -4,38 +4,30 @@ $this->breadcrumbs = array(
 );
 ?>
 <div id="projects-list-wrapper">
-	<h2><?php echo Yii::t('main', 'Projects'); ?></h2>
-	<?php
-        /*echo '<pre>';
-        print_r($project->gridSearch());
-        echo '</pre>';*/
-		$this->renderPartial(
-			'_projectsList',
-			array(
-				'model'=>$project,
-				'dataProvider'=>$project->gridSearch(),
-				'pager'=>$pager,
-			)
-		);
-        echo CHtml::openTag('div', array('class'=>'al-left', 'style'=>'margin: 10px;'));
-        if($this->request->getParam('archived')) {
-            echo CHtml::link(
-                'Back to projects',
-                $this->createurl('/projects/index', array('archived'=>'0')),
-                array('id'=>'switch-view-btn')
-            );
-        } elseif(Company::model()->findByPk(Company::current())->archivedProjectCount>0) {
-            echo CHtml::link(
-                'View archived projects',
-                $this->createUrl('/projects/index', array('archived'=>'1')),
-                array('id'=>'switch-view-btn')
-            );
-        }
-        echo CHtml::closeTag('div');
+    <h2><?php echo Yii::t('main', 'Projects'); ?></h2>
+    <?php
+    $this->renderPartial(
+            '_projectsList', array(
+        'model' => $project,
+        'dataProvider' => $project->gridSearch(),
+        'pager' => $pager,
+        'pagination' => $pagination
+            )
+    );
+    echo CHtml::openTag('div', array('class' => 'al-left', 'style' => 'margin: 10px;'));
+    if ($this->request->getParam('archived')) {
+        echo CHtml::link(
+                'Back to projects', $this->createurl('/projects/index', array('archived' => '0')), array('id' => 'switch-view-btn')
+        );
+    } elseif (Company::model()->findByPk(Company::current())->archivedProjectCount > 0) {
+        echo CHtml::link(
+                'View archived projects', $this->createUrl('/projects/index', array('archived' => '1')), array('id' => 'switch-view-btn')
+        );
+    }
+    echo CHtml::closeTag('div');
 
-    if(!$ajax){
-        $this->clientScript->registerScript('switch-view-btn-click',
-<<<JS
+    if (!$ajax) {
+        $this->clientScript->registerScript('switch-view-btn-click', <<<JS
 $(document).on('click', '#switch-view-btn', function() {
     $.get(this.href, function(d) {
         $('#projects-list-wrapper').replaceWith(d);
@@ -43,62 +35,54 @@ $(document).on('click', '#switch-view-btn', function() {
     return false;
 });
 JS
-        ,CClientScript::POS_END
+                , CClientScript::POS_END
         );
-		$forceCreate=$this->request->getParam('forceCreate');
-		$this->beginWidget(
-			'zii.widgets.jui.CJuiDialog',
-			array(
-				'id'=>'project-form-dialog',
-				'options'=>array(
-					'title'=>'New Project',
-					'autoOpen'=>!empty($forceCreate),
-					//'width'=>350,
-					//'height'=>440,
-					'modal'=>true,
-					'hide'=>'drop',
-					'show'=>'drop',
-					'buttons'=>array(
-						'Save'=>'js:submitProjectForm',
-						//'Cancel'=>'js:closeDialog',
-		            ),
-				)
-			)
-		);
+        $forceCreate = $this->request->getParam('forceCreate');
+        $this->beginWidget(
+                'zii.widgets.jui.CJuiDialog', array(
+            'id' => 'project-form-dialog',
+            'options' => array(
+                'title' => 'New Project',
+                'autoOpen' => !empty($forceCreate),
+                'modal' => true,
+                'hide' => 'drop',
+                'show' => 'drop',
+                'buttons' => array(
+                    'Save' => 'js:submitProjectForm',
+                ),
+            )
+                )
+        );
 
-		$this->renderPartial(
-			'edit',
-			array(
-				'projectForm'=>$projectForm,
-				'project'=>$project,
-		        'projectSettings'=>$projectSettings,
-				'companies'=>$companies,
-				'formAction'=>$formAction
-			)
-		);
-		$this->endWidget();
+        $this->renderPartial(
+                'edit', array(
+            'projectForm' => $projectForm,
+            'project' => $project,
+            'projectSettings' => $projectSettings,
+            'companies' => $companies,
+            'formAction' => $formAction
+                )
+        );
+        $this->endWidget();
 
-		$this->beginWidget(
-			'zii.widgets.jui.CJuiDialog',
-			array(
-				'id'=>'update-dialog',
-				'options'=>array(
-					'title'=>'Please Upgrade',
-					'autoOpen'=>!empty($forceCreate),
-					//'width'=>350,
-					//'height'=>440,
-					'modal'=>true,
-					'hide'=>'drop',
-					'show'=>'drop',
-		            'buttons'=>array(
-		                'Upgrade'=>'js:function(){
-		                    document.location.href="'.$this->createUrl('payment/chooseSubscription').'"
+        $this->beginWidget(
+                'zii.widgets.jui.CJuiDialog', array(
+            'id' => 'update-dialog',
+            'options' => array(
+                'title' => 'Please Upgrade',
+                'autoOpen' => !empty($forceCreate),
+                'modal' => true,
+                'hide' => 'drop',
+                'show' => 'drop',
+                'buttons' => array(
+                    'Upgrade' => 'js:function(){
+		                    document.location.href="' . $this->createUrl('payment/chooseSubscription') . '"
 		                }',
-		            ),
-				)
-			)
-		);
-		$this->endWidget();
+                ),
+            )
+                )
+        );
+        $this->endWidget();
     }
-?>
+    ?>
 </div>

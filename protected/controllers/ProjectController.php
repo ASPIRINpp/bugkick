@@ -2,7 +2,7 @@
 
 /**
  * ProjectController
- * @since 1.0
+ * @since 1.1
  * @author f0t0n
  * @author Bogomazov Bogdan <b.bogomazov@gmail.com> (changes)
  */
@@ -13,7 +13,10 @@ class ProjectController extends Controller {
      */
     public $layout = '//layouts/column2';
 
+    // CListView->pager->pageSize
     const PAGE_SIZE = 30;
+    // Count of project on page
+    const PROJECTS_ON_PAGE = 20;
 
     /**
      * 
@@ -64,57 +67,56 @@ class ProjectController extends Controller {
     }
 
     /**
-     * 
-     * @param type $archived
+     * List of project
+     * @param int|bool $archived Show archived projects
      */
     public function actionIndex($archived = 0) {
-        if (Yii::app()->user->isGuest)
+        if (Yii::app()->user->isGuest) {
             $this->redirect($this->createUrl('site/login'));
+        }
 
         $this->showHelpForNewUsers();
-
         $user = User::current();
-        Yii::app()->clientScript->registerScriptFile(
-                Yii::app()->baseUrl . '/js/plug-in/jquery-json/jquery.json.min.js'
-        );
-        $this->clientScript->registerScriptFile(
-                Yii::app()->baseUrl . '/js/plug-in/fprogress-bar/fprogress-bar.js'
-        );
-        $this->clientScript->registerCssFile(
-                Yii::app()->baseUrl . '/js/plug-in/fprogress-bar/fprogress-bar.css'
-        );
-        $this->clientScript->registerScriptFile(
-                Yii::app()->baseUrl . '/js/plug-in/jquery-gantt/js/jquery.fn.gantt.min.js'
-        );
-        $this->clientScript->registerCssFile(
-                Yii::app()->baseUrl . '/js/plug-in/jquery-gantt/style.css'
-        );
-        Yii::app()->clientScript->registerScriptFile(
-                Yii::app()->baseUrl . '/js/plug-in/jquery-form/jquery.form.min.js'
-        );
-        Yii::app()->clientScript->registerScriptFile(
-                Yii::app()->baseUrl . '/js/project/index/common.min.js'
-        );
-        $projectSettings = new SettingsByProject();
+
+        // Simple register ClientScript files
+        $this->registerClientScriptFiles(array(
+            '/js/plug-in/jquery-json/jquery.json.min.js' => 'css',
+            '/js/plug-in/fprogress-bar/fprogress-bar.css' => 'css',
+            '/js/plug-in/jquery-gantt/js/jquery.fn.gantt.min.js' => 'script',
+            '/js/plug-in/jquery-gantt/style.css' => 'css',
+            '/js/plug-in/jquery-form/jquery.form.min.js' => 'script',
+            '/js/project/index/common.min.js' => 'script'), TRUE);
+
+        // Project
         $project = new Project('search');
         $attributes = $this->request->getParam('Project');
-        if (!empty($attributes))
+        if (!empty($attributes)) {
             $project->setAttributes($attributes);
+        }
+
+        // Build view data
+        $viewData = array(
+            'companies' => array(),
+            'formAction' => $this->createUrl('project/create'),
+            'projectForm' => new ProjectForm(),
+            'project' => $archived ? $project->archived()->visibleOnly() : $project->active()->visibleOnly(),
+            'projectSettings' => new SettingsByProject(),
+            'pager' => array('pageSize' => self::PAGE_SIZE, 'header' => false),
+            'pagination' => array('pageSize' => self::PROJECTS_ON_PAGE),
+            'ajax' => FALSE
+        );
+
         $companies = empty($user->company) ? array() : $user->company;
-        $viewData['companies'] = array();
-        foreach ($companies as $company)
+        foreach ($companies as $company) {
             $viewData['companies'][$company->company_id] = $company->company_name;
-        $viewData['formAction'] = $this->createUrl('project/create');
-        $viewData['projectForm'] = new ProjectForm();
-        $viewData['project'] = $archived ? $project->archived()->visibleOnly() : $project->active()->visibleOnly();
-        $viewData['projectSettings'] = $projectSettings;
-        $viewData['pager'] = array('pageSize' => self::PAGE_SIZE, 'header' => false);
-        $viewData['ajax'] = false;
+        }
 
-        MixPanel::instance()->registerEvent(MixPanel::PROJECTS_PAGE_VIEW); // MixPanel events tracking
+        // MixPanel events tracking
+        MixPanel::instance()->registerEvent(MixPanel::PROJECTS_PAGE_VIEW);
 
+        // Check request & render
         if ($this->request->isAjaxRequest) {
-            $viewData['ajax'] = true;
+            $viewData['ajax'] = TRUE;
             echo $this->renderPartial('index', $viewData);
         } else {
             $this->render('index', $viewData);
