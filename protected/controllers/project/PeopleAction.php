@@ -1,61 +1,60 @@
 <?php
+
 /**
  * Author: Alexey kavshirko@gmail.com
  * Date: 24.11.12
  * Time: 18:35
  */
+class PeopleAction extends Action {
 
-class PeopleAction extends Action
-{
     const PAGE_SIZE = 50;
 
-	protected $project;
+    protected $project;
 
-	protected function init() {
+    protected function init() {
 
         $this->controller->layout = '//layouts/column1';
 
-		$this->project= Project::getCurrent();
-        if(empty($this->project))
+        $this->project = Project::getCurrent();
+        if (empty($this->project))
             throw new CHttpException(404, 'Please choose project first.');
 
         //Edit Project stuff
         $baseUrl = Yii::app()->assetManager->publish('protected/extensions/EAjaxUpload/assets');
         Yii::app()->clientScript->registerScriptFile($baseUrl . '/fileuploader.js', CClientScript::POS_HEAD);
-        Yii::app()->clientScript->registerCssFile($baseUrl.'/fileuploader.css');
+        Yii::app()->clientScript->registerCssFile($baseUrl . '/fileuploader.css');
         Yii::app()->clientScript->registerScriptFile(
-            Yii::app()->baseUrl . '/js/project/index/common.js'
+                Yii::app()->baseUrl . '/js/project/index/common.js'
         );
 
         $user = User::current();
-        if(empty($user)
-            || $user->getStatusInCompany(Company::current())
-                != User::STATUS_ACTIVE) {
+        if (empty($user) || $user->getStatusInCompany(Company::current()) != User::STATUS_ACTIVE) {
             throw new CHttpException(403, 'Action forbidden.');
         }
-	}
+    }
 
-	public function run() {
-		$this->init();
+    public function run() {
+        $this->init();
 
         $criteria = new CDbCriteria();
         $criteria->with = array(
-            'project'=>array(
-                'condition'=>'project.project_id=:project_id',
-                'params'=>array(
-                    ':project_id'=>$this->project->project_id,
+            'project' => array(
+                'condition' => 'project.project_id=:project_id',
+                'params' => array(
+                    ':project_id' => $this->project->project_id,
                 ),
-                'together'=>true,
+                'together' => true,
             )
         );
-        $dataProvider = new CActiveDataProvider('User',array(
-            'criteria'=>$criteria,
-            'pagination'=>array(
-                'pageSize'=>self::PAGE_SIZE,
+        $dataProvider = new CActiveDataProvider('User', array(
+            'criteria' => $criteria,
+            'pagination' => array(
+                'pageSize' => self::PAGE_SIZE,
             ),
         ));
         $this->controller->render('people', array(
-            'dataProvider'=>$dataProvider
+            'dataProvider' => $dataProvider
         ));
-	}
+    }
+
 }

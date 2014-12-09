@@ -28,7 +28,7 @@ class UserController extends Controller {
                 'actions' => array(
                     //'index',
                     'view',
-                   // 'create',
+                    // 'create',
                     'update',
 //                    'admin',
                     'delete',
@@ -117,41 +117,41 @@ JS
      * Creates a new model.
      * If creation is successful, the browser will be redirected to the 'view' page.
      */
-/*    public function actionCreate() {
-        $model = new User('registration');
+    /*    public function actionCreate() {
+      $model = new User('registration');
 
-        $userProvider = new CActiveDataProvider('User', array(
-                    'criteria' => array(
-                        'with' => array(
-                            'company' => array(
-                                //'select'=>false,
-                                //'joinType'=>'INNER JOIN',
-                                'condition' => 'company.company_id=' . Company::current(),
-                            )
-                        )
-                    )
-                ));
+      $userProvider = new CActiveDataProvider('User', array(
+      'criteria' => array(
+      'with' => array(
+      'company' => array(
+      //'select'=>false,
+      //'joinType'=>'INNER JOIN',
+      'condition' => 'company.company_id=' . Company::current(),
+      )
+      )
+      )
+      ));
 
-        // Uncomment the following line if AJAX validation is needed
-        $this->performAjaxValidation($model, 'user-form');
+      // Uncomment the following line if AJAX validation is needed
+      $this->performAjaxValidation($model, 'user-form');
 
-        if (isset($_POST['User'])) {
-            $model->attributes = $_POST['User'];
-            $password = md5(uniqid(mt_rand(), true));
-            $password = substr($password, 20);
-            $model->password = Hash::sha256($password . $model->salt());
-            //$model->password = bin2hex(mhash(MHASH_SHA256, $password . Yii::app()->params['passwordSalt']));
-            $model->randomPassword = $password;
-            $model->save();
-        }
+      if (isset($_POST['User'])) {
+      $model->attributes = $_POST['User'];
+      $password = md5(uniqid(mt_rand(), true));
+      $password = substr($password, 20);
+      $model->password = Hash::sha256($password . $model->salt());
+      //$model->password = bin2hex(mhash(MHASH_SHA256, $password . Yii::app()->params['passwordSalt']));
+      $model->randomPassword = $password;
+      $model->save();
+      }
 
-        if (Yii::app()->request->isAjaxRequest && isset($_POST['ajax'])) {
-            $this->renderPartial('application.views.settings._users', array('model' => $userProvider));
-        } else {
-            $this->redirect(Yii::app()->createUrl('settings/userListing'));
-        }
-        Yii::app()->end();
-    }*/
+      if (Yii::app()->request->isAjaxRequest && isset($_POST['ajax'])) {
+      $this->renderPartial('application.views.settings._users', array('model' => $userProvider));
+      } else {
+      $this->redirect(Yii::app()->createUrl('settings/userListing'));
+      }
+      Yii::app()->end();
+      } */
 
     /**
      * Updates a particular model.
@@ -183,14 +183,14 @@ JS
                     $delSql = 'DELETE FROM {{user_by_project}} WHERE user_id=:user_id';
                     $cmd->setText($delSql)->execute($cmdParams); //	delete projects
                     $getSqlValues = function(array $IDs) {
-                                $values = array();
-                                foreach ($IDs as $id) {
-                                    $values[] = '(:user_id,' . (int) $id . ', '
-                                            . ($id == User::current()->user_id ? '1' : '0')
-                                            . ')';
-                                }
-                                return $values;
-                            };
+                        $values = array();
+                        foreach ($IDs as $id) {
+                            $values[] = '(:user_id,' . (int) $id . ', '
+                                    . ($id == User::current()->user_id ? '1' : '0')
+                                    . ')';
+                        }
+                        return $values;
+                    };
                     $values = $getSqlValues($form->projects);
                     if (!empty($values)) {
                         $sql = 'INSERT INTO {{user_by_project}} VALUES'
@@ -199,10 +199,9 @@ JS
                     }
                 }
                 UserByCompany::model()->updateAll(
-                    array('is_admin'=>($form->is_company_admin)? 1 : 0),
-                    'user_id=:user_id AND company_id=:company_id', array(
-                        ':user_id'=>$model->user_id,
-                        ':company_id'=>Company::current(),
+                        array('is_admin' => ($form->is_company_admin) ? 1 : 0), 'user_id=:user_id AND company_id=:company_id', array(
+                    ':user_id' => $model->user_id,
+                    ':company_id' => Company::current(),
                 ));
                 if ($model->save()) {
                     Yii::app()->user->setFlash('success', "Saved!");
@@ -258,15 +257,13 @@ JS
                 }
 
                 $user->save();
-            }
-            else
+            } else
                 throw new CHttpException(400, 'Invalid request.');
 
             // if AJAX request (triggered by deletion via admin grid view), we should not redirect the browser
             if (!isset($_GET['ajax']))
                 $this->redirect(Yii::app()->createUrl('settings/userListing'));
-        }
-        else
+        } else
             throw new CHttpException(400, 'Invalid request.');
     }
 
@@ -283,41 +280,39 @@ JS
                 $user->userStatus = User::STATUS_ACTIVE;
                 $user->save();
                 $user->setStatusInCompany(User::STATUS_ACTIVE, Company::current());
-            }
-            else
+            } else
                 throw new CHttpException(400, 'Invalid request.');
 
             Notificator::restoreUser($user);
             Yii::app()->user->setFlash('success', 'User was successfully restored.');
             $this->redirect(Yii::app()->createUrl('settings/members'));
-        }
-        else
+        } else
             throw new CHttpException(403, 'You don\'t have permission to access this page.');
     }
 
     /**
      * Lists all models.
      */
-/*    public function actionIndex() {
-        $dataProvider = new CActiveDataProvider('User');
-        $this->render('index', array(
-            'dataProvider' => $dataProvider,
-        ));
-    }*/
+    /*    public function actionIndex() {
+      $dataProvider = new CActiveDataProvider('User');
+      $this->render('index', array(
+      'dataProvider' => $dataProvider,
+      ));
+      } */
 
     /**
      * Manages all models.
      */
-/*    public function actionAdmin() {
-        $model = new User('search');
-        $model->unsetAttributes();  // clear any default values
-        if (isset($_GET['User']))
-            $model->attributes = $_GET['User'];
+    /*    public function actionAdmin() {
+      $model = new User('search');
+      $model->unsetAttributes();  // clear any default values
+      if (isset($_GET['User']))
+      $model->attributes = $_GET['User'];
 
-        $this->render('admin', array(
-            'model' => $model,
-        ));
-    }*/
+      $this->render('admin', array(
+      'model' => $model,
+      ));
+      } */
 
     /**
      * Returns the data model based on the primary key given in the GET variable.
@@ -342,8 +337,7 @@ JS
 //            $project = Project::model()->findByPk(
 //                (int)$_POST['User']['project']);
             if (empty($project)) {
-                throw new CHttpException(404,
-                        'Wrong request. Project not found');
+                throw new CHttpException(404, 'Wrong request. Project not found');
             }
             $user = User::model()->findByAttributes(array(
                 'email' => $_POST['User']['email']
@@ -359,11 +353,10 @@ JS
             } elseif ($user->getStatusInCompany(Company::current()) != -1) {
                 //case when user was already invited to this company
                 //we just resend an invitation email
-                if($user->userStatus == User::STATUS_INVITED){
+                if ($user->userStatus == User::STATUS_INVITED) {
                     Notificator::newInvite($user);
                     $isUserInvited = true;
-                }
-                else{
+                } else {
                     //user already a member of the company
                     //we just add him to project
                     $isUserInvited = $user->addToProject($project, $isAdmin);
@@ -380,7 +373,7 @@ JS
         } elseif (strstr(Yii::app()->request->getUrlReferrer(), '/new')) {
             Yii::import('application.controllers.NewController');
             NewController::setCurrentStep(3);
-            $this->redirect(Yii::app()->createUrl('new/2',array('completed_step_2'=>1)));
+            $this->redirect(Yii::app()->createUrl('new/2', array('completed_step_2' => 1)));
         } else {
             $this->redirect(Yii::app()->createUrl('settings/members'));
         }
@@ -401,7 +394,7 @@ JS
         $user = new User('invite');
         if (isset($_POST['User'])) {
             $user->attributes = $_POST['User'];
-            if(empty($user->name) && empty($user->lname))
+            if (empty($user->name) && empty($user->lname))
                 $user->name = 'Pending user';
             $password = md5(uniqid(mt_rand(), true));
             $password = substr($password, 20);
@@ -413,7 +406,7 @@ JS
             $user->invited_by_id = Yii::app()->user->id;
             $user->isadmin = $isAdmin;
         }
-        if ($user->save()){
+        if ($user->save()) {
             $user->addToProject($project, $isAdmin);
             $user->setStatusInCompany(User::STATUS_ACTIVE, $project->company_id);
             Notificator::newInvite($user);
@@ -428,19 +421,16 @@ JS
 
             $inviteToken = sha1(uniqid(mt_rand(), true));
             $model->inviteToken = $inviteToken;
-            $acceptUrl = Yii::app()->createAbsoluteUrl('user/confirmInvite', array('t' =>$inviteToken));
+            $acceptUrl = Yii::app()->createAbsoluteUrl('user/confirmInvite', array('t' => $inviteToken));
 
             $mailSubject = '[' . Yii::app()->name . '] ';
             $mailSubject .= Yii::app()->user->name . ' invites you to join the team for "' . Yii::app()->user->company_name . '"';
             $mailMessage = $this->renderFile(Yii::getPathOfAlias('application.views.mailTemplate.inviteMember') . '.php', array('acceptUrl' => $acceptUrl), true);
 
-            if ($model->save()){
+            if ($model->save()) {
                 $SESMail = new SESMail();
                 $SESMail->send(
-                    $model->email,
-                    Yii::app()->params['adminEmail'],
-                    $mailSubject,
-                    $mailMessage
+                        $model->email, Yii::app()->params['adminEmail'], $mailSubject, $mailMessage
                 );
             }
 
@@ -556,7 +546,7 @@ JS
             'project_id' => $project_id,
             'company_id' => $company_id,
             'user_id' => $user_id,
-                ));
+        ));
         if (!empty($invite)) {
             $invite->delete();
             $project = Project::model()->with('company')->findByPk($project_id);
@@ -734,7 +724,7 @@ JS
                 GROUP BY U.user_id, U.name, U.email
             ) AS S
             LEFT JOIN bk_comment C ON S.user_id = C.user_id
-            LEFT JOIN bk_comment RC ON S.user_id = RC.user_id AND RC.created_at > ".time()."
+            LEFT JOIN bk_comment RC ON S.user_id = RC.user_id AND RC.created_at > " . time() . "
             GROUP BY S.user_id, S.name, S.email";
             $connection = Yii::app()->db;
             $connection->active = true;
@@ -828,4 +818,5 @@ JS
         }
         $this->redirect(Yii::app()->createUrl('bug/index'));
     }
+
 }

@@ -20,7 +20,7 @@ class SiteController extends Controller {
     public function accessRules() {
         return array(
             array('allow', // allow authenticated user to perform 'create' and 'update' actions
-                'actions' => array('index', 'SendMailCountactUs' ,'logout', 'sendDateNotification', 'design'),
+                'actions' => array('index', 'SendMailCountactUs', 'logout', 'sendDateNotification', 'design'),
                 'users' => array('@'),
             ),
             array('allow',
@@ -78,20 +78,18 @@ class SiteController extends Controller {
         }
         //if user already registered then redirect
         //to the login page instead of showing main page
-        if (Yii::app()->request->cookies->contains(self::BK_USER_COOKIE)
-                && Yii::app()->request
+        if (Yii::app()->request->cookies->contains(self::BK_USER_COOKIE) && Yii::app()->request
                 ->cookies[self::BK_USER_COOKIE]->value == 1) {
             $this->redirect($this->createUrl('site/login'));
         }
 
         //track users that came from 'bugkick.com' link in Feedback form
-        if(Yii::app()->request->getParam('r')==1 && !empty(Yii::app()->request->urlReferrer)){
+        if (Yii::app()->request->getParam('r') == 1 && !empty(Yii::app()->request->urlReferrer)) {
             // MixPanel events tracking
             MixPanel::instance()->registerEvent(MixPanel::FROM_FEEDBACK_WIDGET, array(
-                'site'=>CHtml::encode(Yii::app()->request->urlReferrer)
+                'site' => CHtml::encode(Yii::app()->request->urlReferrer)
             ));
-        }
-        else{
+        } else {
             MixPanel::instance()->registerEvent(MixPanel::HOME_PAGE_VIEW); // MixPanel events tracking
         }
 
@@ -121,10 +119,7 @@ class SiteController extends Controller {
             if ($model->validate()) {
                 $SESMail = new SESMail();
                 $SESMail->send(
-                    Yii::app()->params['adminEmail'],
-                    $model->email,
-                    $model->subject,
-                    $model->body
+                        Yii::app()->params['adminEmail'], $model->email, $model->subject, $model->body
                 );
                 Yii::app()->user->setFlash('contact', 'Thank you for contacting us. We will respond to you as soon as possible.');
                 $this->refresh();
@@ -144,7 +139,7 @@ class SiteController extends Controller {
             $this->fbSignUp($graph);
         Yii::app()->user->login($userIdentity);
         $this->redirectToDefaultPage();
-       // Yii::app()->request->redirect($this->createUrl('bug/'));
+        // Yii::app()->request->redirect($this->createUrl('bug/'));
     }
 
     protected function setBkUserCookie() {
@@ -177,7 +172,7 @@ class SiteController extends Controller {
             if ($this->session['fromRegistration'] == 1) {
                 $this->setBkUserCookie();
                 $this->session['fromRegistration'] = 0;
-                if (!empty($plan) && $this->session['registersWithCoupon']!=1) {
+                if (!empty($plan) && $this->session['registersWithCoupon'] != 1) {
                     $this->redirect($this->createUrl('payment/pro-account', array('subscription' => $plan)));
                 }
                 $this->redirect($this->createUrl('bug/'));
@@ -196,10 +191,10 @@ class SiteController extends Controller {
         $graph = null;
         if (empty($fbUser)) {
             $fbLoginUrl = $fb->getLoginUrl(
-                array(
-                    'scope' => 'email',
-                    'redirect_uri' => $this->createAbsoluteUrl('/site/login'),
-                )
+                    array(
+                        'scope' => 'email',
+                        'redirect_uri' => $this->createAbsoluteUrl('/site/login'),
+                    )
             );
         } else {
             try {
@@ -225,27 +220,27 @@ class SiteController extends Controller {
             // validate user input and redirect to the previous page if valid
             if ($attempt_limit < 4 && $model->validate() && $model->login()) {
                 $this->setBkUserCookie();
-                
+
                 $user = User::current();
-                
-                if( empty($user->profile_img) ){
-	                $profile_img_url  = 'images/profile_img/';
-	                $profile_img_name = md5(uniqid(mt_rand(), true)) . '.jpg';
-	                $gr_img_31 = $this->getGravatar($user->email, 31);
-	                $gr_img_81 = $this->getGravatar($user->email, 81);
-	                
-	                if( @fopen($gr_img_31,"r") ){
-	                	file_put_contents($profile_img_url . '31_31_' . $profile_img_name, file_get_contents($gr_img_31));
-	                	file_put_contents($profile_img_url . '81_81_' . $profile_img_name, file_get_contents($gr_img_81));
-	                
-	                	$user->profile_img = $profile_img_name;
-	                	$user->save();
-	                }
+
+                if (empty($user->profile_img)) {
+                    $profile_img_url = 'images/profile_img/';
+                    $profile_img_name = md5(uniqid(mt_rand(), true)) . '.jpg';
+                    $gr_img_31 = $this->getGravatar($user->email, 31);
+                    $gr_img_81 = $this->getGravatar($user->email, 81);
+
+                    if (@fopen($gr_img_31, "r")) {
+                        file_put_contents($profile_img_url . '31_31_' . $profile_img_name, file_get_contents($gr_img_31));
+                        file_put_contents($profile_img_url . '81_81_' . $profile_img_name, file_get_contents($gr_img_81));
+
+                        $user->profile_img = $profile_img_name;
+                        $user->save();
+                    }
                 }
 
                 $from = Yii::app()->user->getState('fromUrl');
-                if(!empty($from)){
-                    Yii::app()->user->setState('fromUrl',null);
+                if (!empty($from)) {
+                    Yii::app()->user->setState('fromUrl', null);
                     $this->redirect($from);
                 }
                 $this->redirect(Yii::app()->user->returnUrl);
@@ -296,6 +291,7 @@ class SiteController extends Controller {
             MixPanel::instance()->registerEvent(MixPanel::SIGN_UP, array('type' => 'free')); // MixPanel events tracking
 
 
+
             
 // display the login form
         $this->layout = '/layouts/index-new';
@@ -309,10 +305,9 @@ class SiteController extends Controller {
         $token = $this->request->getParam('token');
         if ($token !== $this->request->csrfToken)
             throw new CHttpException(
-                    404,
-                    Yii::t(
-                            'main', 'Invalid request. Please do not repeat this request again.'
-                    )
+            404, Yii::t(
+                    'main', 'Invalid request. Please do not repeat this request again.'
+            )
             );
         FacebookHelper::getFacebook()->destroySession();
         Yii::app()->user->logout();
@@ -327,9 +322,9 @@ class SiteController extends Controller {
         //Edit Project stuff
         $baseUrl = Yii::app()->assetManager->publish('protected/extensions/EAjaxUpload/assets');
         Yii::app()->clientScript->registerScriptFile($baseUrl . '/fileuploader.js', CClientScript::POS_HEAD);
-        Yii::app()->clientScript->registerCssFile($baseUrl.'/fileuploader.css');
+        Yii::app()->clientScript->registerCssFile($baseUrl . '/fileuploader.css');
         Yii::app()->clientScript->registerScriptFile(
-            Yii::app()->baseUrl . '/js/project/index/common.js'
+                Yii::app()->baseUrl . '/js/project/index/common.js'
         );
 
         $bugCount = Company::getBugsCount();
@@ -377,7 +372,7 @@ class SiteController extends Controller {
 
         $users = Company::getUsers();
         $statuses = Company::getStatuses();
-        $labels = Company::getLabels(null,true);
+        $labels = Company::getLabels(null, true);
 
         $this->render('dashboard', array(
             'bugCount' => $bugCount,
@@ -414,14 +409,14 @@ class SiteController extends Controller {
         $this->render('calendar', array('bugs' => $bugsArray));
     }
 
-/*    public function actionSendDateNotification() {
-        $data = Bug::getOutdatedTickets();
-        if (is_array($data))
-            Notificator::sendDueDateNotification($data);
-        else
-            print 'No Outdated tickets.';
-        Yii::app()->end();
-    }*/
+    /*    public function actionSendDateNotification() {
+      $data = Bug::getOutdatedTickets();
+      if (is_array($data))
+      Notificator::sendDueDateNotification($data);
+      else
+      print 'No Outdated tickets.';
+      Yii::app()->end();
+      } */
 
     public function actionPreviewMarkdown() {
         $markdownContent = $this->request->getPost('data');
@@ -453,29 +448,30 @@ class SiteController extends Controller {
                 'application.components.views.help._article', array('model' => $article), false, false
         );
     }
-    
-    public function actionSendMailCountactUs(){
+
+    public function actionSendMailCountactUs() {
         $data = $this->request->getPost('ContactUs');
-        $r=CActiveForm::validate(new ContactUs());
-        if($r=="[]"){
-            $e= new Notificator();//aaron@bugkick.com
-            $e->sendEmail("aaron@bugkick.com", $data['email'], 'CuntactUs','Name:'.$data['name'].PHP_EOL.'Comment:'.$data['comment']);
+        $r = CActiveForm::validate(new ContactUs());
+        if ($r == "[]") {
+            $e = new Notificator(); //aaron@bugkick.com
+            $e->sendEmail("aaron@bugkick.com", $data['email'], 'CuntactUs', 'Name:' . $data['name'] . PHP_EOL . 'Comment:' . $data['comment']);
             echo $r;
-        }else{
+        } else {
             echo $r;
         }
     }
 
-    public function getGravatar( $email, $s = 31, $d = 404, $r = 'g', $img = false, $atts = array() ) {
-    	$url = 'http://www.gravatar.com/avatar/';
-    	$url .= md5( strtolower( trim( $email ) ) );
-    	$url .= "?s=$s&d=$d&r=$r";
-    	if ( $img ) {
-    		$url = '<img src="' . $url . '"';
-    		foreach ( $atts as $key => $val )
-    			$url .= ' ' . $key . '="' . $val . '"';
-    		$url .= ' />';
-    	}
-    	return $url;
+    public function getGravatar($email, $s = 31, $d = 404, $r = 'g', $img = false, $atts = array()) {
+        $url = 'http://www.gravatar.com/avatar/';
+        $url .= md5(strtolower(trim($email)));
+        $url .= "?s=$s&d=$d&r=$r";
+        if ($img) {
+            $url = '<img src="' . $url . '"';
+            foreach ($atts as $key => $val)
+                $url .= ' ' . $key . '="' . $val . '"';
+            $url .= ' />';
+        }
+        return $url;
     }
+
 }

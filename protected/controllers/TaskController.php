@@ -1,16 +1,15 @@
 <?php
+
 /**
  * Author: Alexey kavshirko@gmail.com
  * Date: 16.03.13
  * Time: 20:02
  */
+class TaskController extends Controller {
 
-class TaskController extends Controller
-{
-    public function init()
-    {
-        if(Yii::app()->user->isGuest) {
-            Yii::app()->user->setFlash('error','Please log in to access this page.');
+    public function init() {
+        if (Yii::app()->user->isGuest) {
+            Yii::app()->user->setFlash('error', 'Please log in to access this page.');
             $this->redirect('/site/login');
         }
     }
@@ -19,20 +18,18 @@ class TaskController extends Controller
      * This is the default 'index' action that is invoked
      * when an action is not explicitly requested by users.
      */
-    public function actionIndex()
-    {
+    public function actionIndex() {
         throw new CHttpException(404, 'Page not found.');
     }
 
-    public function actionCreate()
-    {
+    public function actionCreate() {
         $ticketID = Yii::app()->request->getParam('ticketID');
         $ticket = Bug::model()->with('project')->findByPk($ticketID);
         $user = User::current();
-        if(empty($user) || !Project::isProjectAccessAllowed($ticket->project->project_id, $user->user_id))
+        if (empty($user) || !Project::isProjectAccessAllowed($ticket->project->project_id, $user->user_id))
             throw new CHttpException(403, 'You don\'t have access to this area.');
 
-        if(empty($ticket))
+        if (empty($ticket))
             throw new CHttpException(404, 'Ticket is not found.');
 
         $model = new TaskForm;
@@ -42,9 +39,9 @@ class TaskController extends Controller
                 Yii::app()->end();
             }
             $model->setAttributes($_POST['TaskForm']);
-            if($model->validate()) {
+            if ($model->validate()) {
                 $task = new Task;
-                $task->attributes=$model->getAttributes();
+                $task->attributes = $model->getAttributes();
                 $task->ticket_id = $ticket->id;
                 $task->user_id = $user->user_id;
                 $task->date = date('Y-m-d H:i:s');
@@ -55,70 +52,65 @@ class TaskController extends Controller
             }
             Yii::app()->end();
         }
-        $this->renderPartial('_form',array('model'=>$model,'ticketID'=>$ticketID));
+        $this->renderPartial('_form', array('model' => $model, 'ticketID' => $ticketID));
     }
 
-    public function actionComplete()
-    {
+    public function actionComplete() {
         $taskID = (int) $_POST['taskID'];
         $user = User::current();
 
         if (empty($taskID) || empty($user))
-            throw new CHttpException(400,'Invalid request.');
+            throw new CHttpException(400, 'Invalid request.');
 
         $task = Task::model()->findByPk($taskID);
-        if(empty($task))
-            throw new CHttpException(400,'Invalid request.');
+        if (empty($task))
+            throw new CHttpException(400, 'Invalid request.');
 
-        if(!Project::isProjectAccessAllowed($task->ticket->project->project_id, $user->user_id))
-            throw new CHttpException(403,'You don\'t have permissions to perform this action.');
+        if (!Project::isProjectAccessAllowed($task->ticket->project->project_id, $user->user_id))
+            throw new CHttpException(403, 'You don\'t have permissions to perform this action.');
 
-        $task->status = ($task->status == Task::STATUS_COMPLETED)
-            ? Task::STATUS_NEW
-            : Task::STATUS_COMPLETED;
+        $task->status = ($task->status == Task::STATUS_COMPLETED) ? Task::STATUS_NEW : Task::STATUS_COMPLETED;
         $task->save();
     }
-    
-	public function actionDelete($id)
-	{
+
+    public function actionDelete($id) {
         $model = $this->loadModel($id);
-        if($model->user_id == Yii::app()->user->id)
+        if ($model->user_id == Yii::app()->user->id)
             $model->delete();
         else
-            throw new CHttpException(400,'Invalid request');
+            throw new CHttpException(400, 'Invalid request');
 
         $this->redirect(Yii::app()->request->getUrlReferrer());
-	}
-    
-	public function actionEdit()
-	{
+    }
+
+    public function actionEdit() {
         $taskID = (int) $_POST['taskID'];
         $user = User::current();
 
         if (empty($taskID) || empty($user))
-            throw new CHttpException(400,'Invalid request.');
+            throw new CHttpException(400, 'Invalid request.');
 
         $task = Task::model()->findByPk($taskID);
-        if(empty($task))
-            throw new CHttpException(400,'Invalid request.');
+        if (empty($task))
+            throw new CHttpException(400, 'Invalid request.');
 
-        if(!Project::isProjectAccessAllowed($task->ticket->project->project_id, $user->user_id))
-            throw new CHttpException(403,'You don\'t have permissions to perform this action.');
+        if (!Project::isProjectAccessAllowed($task->ticket->project->project_id, $user->user_id))
+            throw new CHttpException(403, 'You don\'t have permissions to perform this action.');
 
         $task->description = $_POST['description'];
         $task->save();
-	}
-    
-	/**
-	 * Returns the data model based on the primary key given in the GET variable.
-	 * If the data model is not found, an HTTP exception will be raised.
-	 * @param integer the ID of the model to be loaded
-	 */
-	public function loadModel($id)
-	{
-		$model=Task::model()->findByPk((int)$id);
-		if($model===null)
-			throw new CHttpException(404,'The requested page does not exist.');
-		return $model;
-	}
+    }
+
+    /**
+     * Returns the data model based on the primary key given in the GET variable.
+     * If the data model is not found, an HTTP exception will be raised.
+     * @param integer the ID of the model to be loaded
+     */
+    public function loadModel($id) {
+        $model = Task::model()->findByPk((int) $id);
+        if ($model === null)
+            throw new CHttpException(404, 'The requested page does not exist.');
+        return $model;
+    }
+
 }

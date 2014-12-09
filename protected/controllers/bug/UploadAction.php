@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Action for uploading files to Box.net
  * Author: Alexey kavshirko@gmail.com
@@ -7,8 +8,8 @@
  */
 Yii::import("xupload.actions.XUploadAction");
 
-class UploadAction extends XUploadAction
-{
+class UploadAction extends XUploadAction {
+
     /**
      * Endpoint for downloading shared files http://www.box.net/s/<public_name>
      */
@@ -25,18 +26,16 @@ class UploadAction extends XUploadAction
      */
     protected $file;
 
-    protected function initBoxApi()
-    {
+    protected function initBoxApi() {
         $token = Yii::app()->session->get('boxAuthToken');
-        if(empty($token))
+        if (empty($token))
             throw new CHttpException(400, 'Invalid request.');
 
         Yii::import('application.vendors.box.lib.Box_Rest_Client');
         $api_key = Yii::app()->params['box']['api_key'];
-        try{
+        try {
             $this->boxApi = new Box_Rest_Client($api_key);
-        }
-        catch(Box_Rest_Client_Exception $e) {
+        } catch (Box_Rest_Client_Exception $e) {
             throw new CHttpException(400, 'Invalid Box.net token');
         }
         $this->boxApi->auth_token = $token;
@@ -47,14 +46,13 @@ class UploadAction extends XUploadAction
      * @return int
      * @throws CHttpException
      */
-    protected function createBoxFolder()
-    {
+    protected function createBoxFolder() {
         $folder = new Box_Client_Folder();
         $folder->attr('name', Yii::app()->params['box']['folder_name']);
         $folder->attr('parent_id', 0);
         $folder->attr('share', false);
         $result = $this->boxApi->create($folder);
-        if($result=='create_ok'){
+        if ($result == 'create_ok') {
             return $folder->attr('folder_id');
         }
         throw new CHttpException(500, "Could not create box folder.");
@@ -65,14 +63,13 @@ class UploadAction extends XUploadAction
      * @return mixed
      * @throws CHttpException
      */
-    protected function getBoxFolderID()
-    {
+    protected function getBoxFolderID() {
         $indexFolder = $this->boxApi->folder(0);
-        if(!empty($indexFolder)){
+        if (!empty($indexFolder)) {
             $folders = $indexFolder->folder;
-            if(!empty($folders) && is_array($folders)){
-                foreach($folders as $folder){
-                    if($folder->attr('name')==Yii::app()->params['box']['folder_name'])
+            if (!empty($folders) && is_array($folders)) {
+                foreach ($folders as $folder) {
+                    if ($folder->attr('name') == Yii::app()->params['box']['folder_name'])
                         return $folder->attr('id');
                 }
             }
@@ -86,8 +83,7 @@ class UploadAction extends XUploadAction
      *
      * @throws CHttpException
      */
-    protected function handleUploading()
-    {
+    protected function handleUploading() {
         $this->initBoxApi();
         $boxFolderID = $this->getBoxFolderID();
 
@@ -114,23 +110,21 @@ class UploadAction extends XUploadAction
 
                 $model->{$this->fileAttribute}->saveAs($path . $model->{$this->fileNameAttribute});
                 //chmod($path . $model->{$this->fileNameAttribute}, 0777);
-
                 //upload to Box.net and delete file
-                $file = new Box_Client_File($path . $model->{$this->fileNameAttribute},
-                    $model->{$this->fileNameAttribute});
+                $file = new Box_Client_File($path . $model->{$this->fileNameAttribute}, $model->{$this->fileNameAttribute});
                 $file->attr('folder_id', $boxFolderID);
-                $res = $this->boxApi->upload($file,array(),true);
-                if($res=='upload_ok'){
+                $res = $this->boxApi->upload($file, array(), true);
+                if ($res == 'upload_ok') {
 
-                    $shareLink = $this->boxApi->get('public_share',array(
-                        'target'=>'file',
-                        'target_id'=>$file->attr('id'),
-                        'password'=>'',
-                        'message'=>'',
-                        'emails'=>''
+                    $shareLink = $this->boxApi->get('public_share', array(
+                        'target' => 'file',
+                        'target_id' => $file->attr('id'),
+                        'password' => '',
+                        'message' => '',
+                        'emails' => ''
                     ));
 
-                    if(is_array($shareLink) && $shareLink['status']=='share_ok'){
+                    if (is_array($shareLink) && $shareLink['status'] == 'share_ok') {
 
                         $this->file = new File;
                         $this->file->box_file_id = $file->attr('id');
@@ -140,42 +134,38 @@ class UploadAction extends XUploadAction
                         $this->file->ticket_id = $ticketID;
                         $this->file->user_id = Yii::app()->user->id;
 
-                        if($this->file->save()){
+                        if ($this->file->save()) {
 
 
 
                             $returnValue = $this->beforeReturn();
                             if ($returnValue === true) {
                                 echo json_encode(array(array(
-                                    "name" => $model->{$this->displayNameAttribute},
-                                    "type" => $model->{$this->mimeTypeAttribute},
-                                    "size" => $model->{$this->sizeAttribute},
-                                    "url" => $this->getFileUrl($this->file->public_name),
-                                    "thumbnail_url" => $this->getThumbnailUrl($this->file->public_name),
-                                    "delete_url" => $this->getController()->createUrl($this->getId(), array(
-                                        'YII_CSRF_TOKEN'=>Yii::app()->request->getCsrfToken(),
-                                        "_method" => "delete",
-                                        "file" =>$this->file->id,
-                                    )),
-                                    "delete_type" => "POST"
+                                        "name" => $model->{$this->displayNameAttribute},
+                                        "type" => $model->{$this->mimeTypeAttribute},
+                                        "size" => $model->{$this->sizeAttribute},
+                                        "url" => $this->getFileUrl($this->file->public_name),
+                                        "thumbnail_url" => $this->getThumbnailUrl($this->file->public_name),
+                                        "delete_url" => $this->getController()->createUrl($this->getId(), array(
+                                            'YII_CSRF_TOKEN' => Yii::app()->request->getCsrfToken(),
+                                            "_method" => "delete",
+                                            "file" => $this->file->id,
+                                        )),
+                                        "delete_type" => "POST"
                                 )));
                             } else {
                                 echo json_encode(array(array("error" => $returnValue,)));
                                 Yii::log("UploadAction: " . $returnValue, CLogger::LEVEL_ERROR, "xupload.actions.XUploadAction");
                             }
-                        }
-                        else{
+                        } else {
                             echo json_encode(array(array("error" => $this->file->getErrors())));
                             Yii::log("UploadAction: " . CVarDumper::dumpAsString($this->file->getErrors()), CLogger::LEVEL_ERROR, "xupload.actions.XUploadAction");
                         }
-
-                    }
-                    else{
-                        echo json_encode(array(array("error" =>'An error has occurred while sharing uploaded file on Box.net, please try again.')));
+                    } else {
+                        echo json_encode(array(array("error" => 'An error has occurred while sharing uploaded file on Box.net, please try again.')));
                         Yii::log("UploadAction: An error has occurred while sharing uploaded file on Box.net.", CLogger::LEVEL_ERROR, "xupload.actions.XUploadAction");
                     }
-                }
-                else{
+                } else {
                     echo json_encode(array(array("error" => 'An error has occurred while uploading file to Box.net, please try again.')));
                     Yii::log("UploadAction: An error has occurred while uploading file to Box.net", CLogger::LEVEL_ERROR, "xupload.actions.XUploadAction");
                 }
@@ -193,8 +183,7 @@ class UploadAction extends XUploadAction
      *
      * @return bool Whether deleting was meant by request
      */
-    protected function handleDeleting()
-    {
+    protected function handleDeleting() {
         if (isset($_GET["_method"]) && $_GET["_method"] == "delete") {
             $success = false;
             if ($_GET["file"][0] !== '.' && Yii::app()->user->hasState($this->stateVariable)) {
@@ -202,7 +191,7 @@ class UploadAction extends XUploadAction
                 // files from within that array
                 $userFiles = Yii::app()->user->getState($this->stateVariable, array());
 
-                if(isset($userFiles[$_GET["file"]])){
+                if (isset($userFiles[$_GET["file"]])) {
                     $success = $this->deleteFile($_GET["file"]);
                     if ($success) {
                         unset($userFiles[$_GET["file"]]); // remove it from our session and save that info
@@ -222,23 +211,22 @@ class UploadAction extends XUploadAction
      * @since 0.5
      * @return boolean|string Returns a boolean unless there is an error, in which case it returns the error message
      */
-    protected function beforeReturn()
-    {
+    protected function beforeReturn() {
         $path = $this->getPath();
 
         // Now we need to save our file info to the user's session
-        $userFiles = Yii::app( )->user->getState( $this->stateVariable, array());
+        $userFiles = Yii::app()->user->getState($this->stateVariable, array());
 
         $userFiles[$this->file->id] = array(
-            "path" => $path.$this->formModel->{$this->fileNameAttribute},
+            "path" => $path . $this->formModel->{$this->fileNameAttribute},
             //the same file or a thumb version that you generated
-            "thumb" => $path.$this->formModel->{$this->fileNameAttribute},
+            "thumb" => $path . $this->formModel->{$this->fileNameAttribute},
             "filename" => $this->formModel->{$this->fileNameAttribute},
             'size' => $this->formModel->{$this->sizeAttribute},
             'mime' => $this->formModel->{$this->mimeTypeAttribute},
             'name' => $this->formModel->{$this->displayNameAttribute},
         );
-        Yii::app( )->user->setState( $this->stateVariable, $userFiles );
+        Yii::app()->user->setState($this->stateVariable, $userFiles);
 
         return true;
     }
@@ -247,8 +235,7 @@ class UploadAction extends XUploadAction
      * Returns the file's relative URL path
      * @return string
      */
-    protected function getPublicPath()
-    {
+    protected function getPublicPath() {
         return self::BOX_FILES_END_POINT;
     }
 
@@ -258,8 +245,7 @@ class UploadAction extends XUploadAction
      * @param string $publicName
      * @return string thumbnail name (if blank, thumbnail won't display)
      */
-    public function getThumbnailUrl($publicName)
-    {
+    public function getThumbnailUrl($publicName) {
         return $this->getPublicPath() . $publicName;
     }
 
@@ -269,21 +255,21 @@ class UploadAction extends XUploadAction
      * @return bool
      * @throws CHttpException
      */
-    public function deleteFile($fileID)
-    {
+    public function deleteFile($fileID) {
         $this->initBoxApi();
         $file = File::model()->findByPk($fileID);
-        if(empty($file))
+        if (empty($file))
             throw new CHttpException(404, 'File was not found.');
 
         $result = $this->boxApi->get('delete', array(
-            'target'=>'file',
-            'target_id'=>$file->box_file_id,
+            'target' => 'file',
+            'target_id' => $file->box_file_id,
         ));
 
-        if(is_array($result) && $result['status']=='s_delete_node'){
+        if (is_array($result) && $result['status'] == 's_delete_node') {
             return $file->delete();
         }
         return false;
     }
+
 }

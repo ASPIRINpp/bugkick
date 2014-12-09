@@ -12,7 +12,6 @@
  */
 class SqsController extends Controller {
 
-
     /**
      *
      * @var SQSMail
@@ -25,15 +24,13 @@ class SqsController extends Controller {
     }
 
     public function sendMessage() {
-        $r = $this->sqsMail->send('jimmy@gmail.com',
-            $this->from, 'Test msg #1', 'Body of "Test msg #1"');
-        $r = $this->sqsMail->send('billy@gmail.com',
-            $this->from, 'Test msg #1', 'Body of "Test msg #1"');
+        $r = $this->sqsMail->send('jimmy@gmail.com', $this->from, 'Test msg #1', 'Body of "Test msg #1"');
+        $r = $this->sqsMail->send('billy@gmail.com', $this->from, 'Test msg #1', 'Body of "Test msg #1"');
     }
 
     public function retrieveMessage() {
         $messages = $this->sqsMail->retrieve();
-        foreach($messages as $receiptHandle => $msg) {
+        foreach ($messages as $receiptHandle => $msg) {
             VarDumper::dd($receiptHandle);
             VarDumper::dd($msg);
             $this->sqsMail->delete($receiptHandle);
@@ -55,5 +52,5 @@ class SqsController extends Controller {
         $this->sendMessage();
         $this->retrieveMessage();
     }
-}
 
+}
