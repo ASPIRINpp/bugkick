@@ -41,7 +41,7 @@ $this->breadcrumbs = array(
                      break;
                  case 'local':
                      ?>
-                <div class='bug-profile-pic-wrapper'><img src="/images/profile_img/{{=it.profile_img || "default.jpg" }}" class="bug-profile-pic "/></div>
+                <div class='bug-profile-pic-wrapper'><img src="/images/profile_img/31_31_{{=it.profile_img || "default.jpg" }}" class="bug-profile-pic "/></div>
                 <?php
                 break;
         }
